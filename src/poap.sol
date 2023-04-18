@@ -11,16 +11,17 @@ contract Poap is ERC721, ERC721URIStorage {
     Counters.Counter private _tokenIds;
     address Admin;
 
-    constructor(string memory _name, string memory _symbol, address _admin) ERC721(_name,_symbol) {
+    constructor(address _admin) ERC721("Meta Guard","MET5G2") {
         Admin = _admin;
     }
 
 
-    function safeMint(address to, uint256 _tokenId, string memory uri)
+    function safeMint(address to, uint256 _tokenId)
         external
 
     {
         require(msg.sender == Admin, "Unauthorized CALL[POAP]");
+        string memory uri = "QmaJKdf1ET1hcCvxF2JD14gRh77Sii5nXHcC6pF6FMnwxA";
         _safeMint(to, _tokenId);
         _setTokenURI(_tokenId, uri);
     }

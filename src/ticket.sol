@@ -20,21 +20,17 @@ contract iTicketing is ERC721, ERC721URIStorage {
     address public Controller;
     address public eventAdmin;
     address poapAddr;
+    address factory;
     string baseUri;
     
 
     struct EventDetails {
-        bool hasRegistrationStarted;
         uint256  eventNftId;
         uint256  poapNftId;
         uint256  totalParticipants;
         uint256 regStartTime;
         uint256 regEndTime;
-        uint256  eventStartTime;
-        uint256  eventEndTime;
         uint256  eventFee;
-        string  eventDate;
-        string poapUri;
         string eventUri;
     }
     ///////     INITIALIZE STRUCT    ////////
@@ -49,7 +45,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
 
     ///////     EVENTS      ///////    
     event EventCreated(uint256 NftId, address creator);
-    event RegistrationStarted(string info);
+    event Registration_Status(string info);
     event Registered(address attendee, uint256 event_id, string tokenURI);
     event Attendance_Token_Claimed(address participant, uint256 AttendanceTokenID);
     event WithdrawEthAdmin(address admin, uint256 amount, uint256 withdrawal_time);
@@ -79,19 +75,25 @@ contract iTicketing is ERC721, ERC721URIStorage {
         uint256 _id,
         uint256 _fee,
         uint256 _no_of_participants,
+        uint256 _regStartTime,
+        uint256 _regEndTime,
         string memory _eventUri,
         string memory _name,
         string memory _symbol,
         address _admin,
-        address _controller
+        address _controller,
+        address _factory
         ) ERC721(_name, _symbol) {
         eventAdmin = _admin;
         Controller = _controller;
+        factory = _factory;
         setBaseUri("https://ipfs.io/ipfs/");
         createEvent(
             _id,
             _fee,
             _no_of_participants,
+            _regStartTime,
+            _regEndTime,
             _eventUri
         );
     }
@@ -118,34 +120,22 @@ contract iTicketing is ERC721, ERC721URIStorage {
             uint256 _id,
             uint256 _fee,
             uint256 no_of_participants,
+            uint256 _regStartTime,
+            uint256 _regEndTime,
             string memory _eventUri
             ) internal {
 
             eventDetails.eventNftId = _id;
             eventDetails.eventFee = _fee;
             eventDetails.eventUri = _eventUri;
+            eventDetails.regStartTime = _regStartTime;
+            eventDetails.regEndTime = _regEndTime;
 
             idExists[_id] = true;
             totalExpectedParticipants = no_of_participants;
 
             emit EventCreated(_id, msg.sender);
         } 
-        
-
-        function startRegistration(uint _startTime, uint _endTime) external onlyEventAdmin {
-            require(!eventDetails.hasRegistrationStarted, "Registration Already started");
-
-            eventDetails.hasRegistrationStarted = true;
-            eventDetails.eventStartTime = _startTime;
-            eventDetails.eventEndTime = _endTime;
-            emit RegistrationStarted("Registration started!!!");
-        }
-
-        function endRegistration() external onlyEventAdmin {
-            require(eventDetails.hasRegistrationStarted, "Registration Already ended");
-            eventDetails.hasRegistrationStarted = false;
-            emit RegistrationStarted("Registration Ended!!!");
-        }
 
 
         function setAttenders(address[] calldata _participants) external onlyEventAdmin {
@@ -157,7 +147,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
 
-        function safeMint(address to, uint256 _tokenId, string memory uri)
+        function safeMint2(address to, uint256 _tokenId, string memory uri)
             internal
 
         {
@@ -183,14 +173,15 @@ contract iTicketing is ERC721, ERC721URIStorage {
 
             if(totalExpectedParticipants == eventDetails.totalParticipants) revert Max_No_Of_Participants_Reached();
             if(hasRegistered[msg.sender] == true) revert Already_Registered();
-            if(!eventDetails.hasRegistrationStarted) revert Registration_Not_Started();
+            if(eventDetails.regStartTime > block.timestamp) revert Registration_Not_Started();
+            if(eventDetails.regEndTime < block.timestamp) revert Registration_Ended();
 
             if(eventDetails.eventFee == 0 && msg.value == 0) {
                 
                 hasRegistered[msg.sender] = true;
                 eventDetails.totalParticipants = eventDetails.totalParticipants + 1;
 
-                safeMint(msg.sender, eventId, _tokenURI);
+                safeMint2(msg.sender, eventId, _tokenURI);
                 emit Registered(msg.sender, eventId, _tokenURI);
                 
             } else if(msg.value == eventDetails.eventFee && eventDetails.eventFee > 0) {
@@ -199,22 +190,16 @@ contract iTicketing is ERC721, ERC721URIStorage {
                 eventDetails.totalParticipants = eventDetails.totalParticipants + 1;
                 totalEthFromTicket = totalEthFromTicket + msg.value;
        
-                safeMint(msg.sender, eventId, _tokenURI);
+                safeMint2(msg.sender, eventId, _tokenURI);
 
                 emit Registered(msg.sender, eventId, _tokenURI);
                 
             } else { revert("Not ticket fee");}
         }
 
-        
 
-
-        function setPoapUri_Addr(string memory _uri, address _poap) external onlyEventAdmin {
-            bytes32 zeroHash = keccak256(abi.encode(""));
-            if(_poap == address(0)) revert Invalid_Address();
-            if(zeroHash == keccak256(abi.encode(_uri))) revert Invalid_Event_Uri();
-
-            eventDetails.poapUri = _uri;
+        function setPoapAddr( address _poap) external {
+            if(msg.sender != factory) revert("Unauthorized call[setPoapAddr]");
             poapAddr = _poap;
         }
 
@@ -223,12 +208,11 @@ contract iTicketing is ERC721, ERC721URIStorage {
             _tokenIds.increment();
             uint256 currentNum = _tokenIds.current();
             uint256 poapNftId = eventDetails.eventNftId + currentNum;
-            string memory _poapUri = eventDetails.poapUri;
             if(!attendedEvent[msg.sender]) revert Record_Not_Found();
             if(hasClaimed[msg.sender]) revert("Already claimed NFT");
 
             hasClaimed[msg.sender] = true;
-            IPoap(poapAddr).safeMint(msg.sender, poapNftId, _poapUri);
+            IPoap(poapAddr).safeMint(msg.sender, poapNftId);
             emit Attendance_Token_Claimed(msg.sender, poapNftId);
         }
 
@@ -260,10 +244,6 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
         //////////////   VIEW FUNCTIONS      ///////////////
-      
-        function showEventDate() external view returns(string memory){ 
-            return eventDetails.eventDate;
-        }
 
         function checkClaimed(address _participant) external view returns(bool){
             return hasClaimed[_participant];
@@ -290,18 +270,15 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
 
-        function withdraw(uint256 _amount, address _to) external {
+        function withdraw() external {
             uint fee = calcQuotas();
             
-            if(msg.sender != Controller) revert Not_Controller();
-            if(_to == address(0x0)) revert Invalid_Address();
-            if(_amount > fee) revert Insufficient_funds();
-            platformFee = platformFee - _amount;
+            if(msg.sender != factory) revert("Unauthorized call[withdraw]");
 
-            (bool success, ) = payable(_to).call{value: _amount}("");
+            (bool success, ) = payable(factory).call{value: fee}("");
             require(success, "Ether transfer fail...");
 
-            emit WithdrawEthPlatform(msg.sender, _amount, _to, block.timestamp);
+            emit WithdrawEthPlatform(msg.sender, fee, factory, block.timestamp);
         }
 
 

@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import "./ticket.sol";
 import "./poap.sol";
+import "./ITicketing.sol";
 
 contract TicketFactory {
 
@@ -61,11 +62,11 @@ contract TicketFactory {
             uint256 _id,
             uint256 _fee,
             uint256 _no_of_participants,
+            uint256 _regStartTime,
+            uint256 _regEndTime,
             string memory _eventUri,
             string memory _name,
-            string memory _symbol,
-            string memory _poapName,
-            string memory _poapSymbol
+            string memory _symbol
             ) external returns(address poapAddr, address iticketingAddr){
 
             bytes32 zeroHash = keccak256(abi.encode(""));
@@ -74,6 +75,7 @@ contract TicketFactory {
             require(eventDetail.admin == msg.sender, "Not Admin");
             if(eventDetail.ID_Is_Used == true) revert ID_Already_In_Use();
             if(eventDetail.id == 0) revert ID_Not_Found();
+            if(_regStartTime <= 0 || _regEndTime <= _regStartTime) revert("Invalid reg. start or end time");
             if(zeroHash == keccak256(abi.encode(_eventUri))) revert Invalid_Event_Uri();
             if(zeroHash == keccak256(abi.encode(_name))) revert Invalid_Value();
             if(zeroHash == keccak256(abi.encode(_symbol))) revert Invalid_Value();
@@ -82,16 +84,17 @@ contract TicketFactory {
                 _id,
                 _fee,
                 _no_of_participants,
+                _regStartTime,
+                _regEndTime,
                 _eventUri,
                 _name,
                 _symbol,
                 msg.sender,
-                Controller
+                Controller,
+                address(this)
             );
 
             Poap poap = new Poap(
-                _poapName,
-                _poapSymbol,
                 address(iticketing)
             );
             
@@ -105,6 +108,8 @@ contract TicketFactory {
 
             poapAddr = address(poap);
             iticketingAddr = address(iticketing);
+            ITicketing(iticketingAddr).setPoapAddr(poapAddr);
+
         } 
 
         function checkEventId(address _eventAddress) external view returns(uint256 id) {
@@ -115,9 +120,23 @@ contract TicketFactory {
             return registeredEvents;
         }
 
+        function changeController(address _newController) external onlyController {
+            if(_newController == address(0)) revert Address_Zero_Detected();
+            Controller = _newController;
+        }
+
 
         function returnTotalNoOfEvents() external view returns(uint256) {
             return registeredEvents.length;
+        }
+
+        function withdrawFromChild(uint256 _id) external onlyController {
+            EventDetail storage eventDetail = event_To_ID[_id];
+
+            if(eventDetail.id != _id) revert ID_Not_Found();
+
+            address childContract = eventDetail.eventAddress;
+            ITicketing(childContract).withdraw();
         }
 
 
@@ -132,7 +151,6 @@ contract TicketFactory {
         }
 
         receive() external payable {}
-
-
+        
 }
 

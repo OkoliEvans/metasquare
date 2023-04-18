@@ -25,37 +25,36 @@ contract CounterScript is Test {
 
     function test_createEvent() public {
         test_CreateID();
-        vm.startPrank(eventAdmin);
-        // address event1 = ticketFactory.createEvent(
-        //     200,
-        //     0,
-        //     60,
-        //     "https://ipfs.io/ipfs/QmX84bZL51sJ4g4M8XoWQnBWQJ4Fh1TbT8TgfW2yyfNft",
-        //     "Musika",
-        //     "MSKA",
-        //     "MusikaFlex",
-        //     "mFlex"
-        // );
 
+        vm.startPrank(eventAdmin);
         (address newPoap, address newEvent) = ticketFactory.createEvent(
             300,
             2 ether,
             50,
+            1 minutes,
+            5 minutes,
             "https://ipfs.io/ipfs/QmX84bZL51sJ4g4M8XoWQnBWQJ4Fh1TbT8TgfW2yyfNft",
             "Musika",
-            "MSKA",
-            "MusikaFlex",
-            "mFlex"
+            "MSKA"
         );
 
         vm.stopPrank();
+        address user = 0x5D319012daEA8Fa10BbE8eBe79E4572988ecf0Ab;
+        vm.deal(user, 50 ether);
+        vm.warp(1 minutes);
+        vm.prank(user);
+        ITicketing(newEvent).register{value: 2 ether}();
+
 
         ticketFactory.checkEventId(newEvent);
         ticketFactory.showTotalEventAddresses();
-        // ticketFactory.returnTotalNoOfEvents();
+
+
+        vm.prank(Controller);
+        ticketFactory.withdrawFromChild(300);
     }
         
-        address[] attenders = [0x5D319012daEA8Fa10BbE8eBe79E4572988ecf0Ab,0x6ED60d1b94b0bB67DcA1c3e69b4Ee2F2eF10136F];
+    address[] attenders = [0x5D319012daEA8Fa10BbE8eBe79E4572988ecf0Ab,0x6ED60d1b94b0bB67DcA1c3e69b4Ee2F2eF10136F];
 
     function test_ticketContract() public {
         test_CreateID();
@@ -64,15 +63,12 @@ contract CounterScript is Test {
             500,
             2 ether,
             50,
+            1 minutes,
+            10 minutes,
             "QmX84bZL51sJ4g4M8XoWQnBWQJ4Fh1TbT8TgfW2yyfNft",
             "Musika",
-            "MSKA",
-            "MusikaFlex",
-            "mFlex"
+            "MSKA"
         );
-
-
-        ITicketing(newEvent).startRegistration(1 minutes, 5 minutes);
 
         vm.stopPrank();
  
@@ -83,6 +79,7 @@ contract CounterScript is Test {
         vm.deal(user2, 50 ether);
         vm.deal(whisperer, 5 ether);
 
+        vm.warp(1 minutes);
         vm.prank(user);
         ITicketing(newEvent).register{value: 2 ether}();
 
@@ -91,28 +88,27 @@ contract CounterScript is Test {
 
 
         vm.startPrank(eventAdmin);
-        ITicketing(newEvent).endRegistration();
         ITicketing(newEvent).setAttenders(attenders);
-        ITicketing(newEvent).setPoapUri_Addr("QmX84bZL51sJ4g4M8XoWQnBWQJ4Fh1TbT8TgfW2yyfNft", address(newPoap));
         
         ITicketing(newEvent).withdrawEthEventAdmin(1.9 ether);
         vm.stopPrank();
 
-        // vm.prank(Controller);
-        // ITicketing(newEvent).withdraw(0.1 ether, user);
+        vm.prank(Controller);
+        ticketFactory.withdrawFromChild(500);
+
+        vm.prank(address(ticketFactory));
+        ITicketing(newEvent).withdraw();
+
 
 
         vm.prank(user);
         ITicketing(newEvent).claimAttendanceToken();
         vm.prank(user2);
         ITicketing(newEvent).claimAttendanceToken();
+
+
         ITicketing(newEvent).EthBalanceOfOrganizer();
         ITicketing(newEvent).tokenURI(501);
-        // ticketFactory.showPoaps();
-
-
-
-
 
     }
 }
