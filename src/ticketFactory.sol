@@ -31,6 +31,9 @@ contract TicketFactory {
         address admin;
         bool ID_Is_Used;
         bool ID_Is_Created;
+        string eventName;
+        uint256 availableTickets;
+        string eventDate;
     }
 
     mapping(address => uint256) eventAddressToID;
@@ -113,6 +116,9 @@ contract TicketFactory {
         registeredEvents.push(address(iticketing));
         eventDetail.eventAddress = address(iticketing);
         eventDetail.admin = msg.sender;
+        eventDetail.eventName = _eventName;
+        eventDetail.availableTickets = _availableTickets;
+        eventDetail.eventDate = _eventDate;
         eventDetail.id = _id;
         eventAddressToID[address(iticketing)] = _id;
 
