@@ -256,6 +256,10 @@ contract iTicketing is ERC721, ERC721URIStorage {
         function EthBalanceOfOrganizer() external view returns(uint) {
             return OrganizersEthShare;
         }
+
+        function showTotalSeatsAvailable() external view returns(uint256) {
+            return totalExpectedParticipants;
+        }
     
         //////////  TRANSACTION FUNCTIONS   ///////////
         function withdrawEthEventAdmin(uint256 _amount) external onlyEventAdmin {
