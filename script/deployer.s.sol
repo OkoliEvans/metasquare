@@ -28,19 +28,19 @@ contract TicketScript is Script {
         vm.startBroadcast(eventAdminKey);
         (address newPoap, address newEvent) = ticketFactory.createEvent(
             10,
-            0.5 ether,
+            0.2 ether,
             50,
             2 minutes,
             5 minutes + block.timestamp,
             "QmU1Av1YCoMph5hoLgKUc32ZbexmCYPx8JoFGzUBxkXpbC",
-            "Musika Dominion",
+            "Musika",
             "MDKA-055"
         );
 
         vm.stopBroadcast();
 
         vm.startBroadcast(userKey);
-        ITicketing(newEvent).register{value: 0.5 ether}();
+        ITicketing(newEvent).register{value: 0.2 ether}();
         vm.stopBroadcast();
 
         vm.startBroadcast(eventAdminKey);

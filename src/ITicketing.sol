@@ -5,6 +5,10 @@ pragma solidity 0.8.15;
 interface ITicketing {
     function register() external payable;
 
+    function openWithdrawal() external;
+    
+    function pauseWithdrawal() external;
+
     function claimAttendanceToken() external;
 
     function setAttenders(address[] calldata _participants) external;

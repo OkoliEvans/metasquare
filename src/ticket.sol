@@ -22,6 +22,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
     address poapAddr;
     address factory;
     string baseUri;
+    bool withdrawIsOpen;
     
 
     struct EventDetails {
@@ -101,6 +102,11 @@ contract iTicketing is ERC721, ERC721URIStorage {
         //////////      MODIFIERS    ///////////////
         modifier onlyEventAdmin() {
             require(msg.sender == eventAdmin, "Unauthorized, not Admin");
+            _;
+        }
+
+           modifier onlyEventAdminOrController() {
+            require(msg.sender == eventAdmin || msg.sender == Controller, "Unauthorized, not Admin");
             _;
         }
 
@@ -262,10 +268,26 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
     
         //////////  TRANSACTION FUNCTIONS   ///////////
-        function withdrawEthEventAdmin(uint256 _amount) external onlyEventAdmin {
+
+        function openWithdrawal() external {
+            if(msg.sender != factory) revert("Unauthorized call[openWithdrawal]");
+            if(withdrawIsOpen) revert("Withdrawal already open");
+
+            withdrawIsOpen = true;
+        }
+
+        function pauseWithdrawal() external {
+            if(msg.sender != factory) revert("Unauthorized call[openWithdrawal]");
+            if(!withdrawIsOpen) revert("Withdrawal already paused");
+
+            withdrawIsOpen = false;
+        }
+
+        function withdrawEthEventAdmin(uint256 _amount) external onlyEventAdminOrController {
             uint fee = calcQuotas();
             OrganizersEthShare = totalEthFromTicket - fee;
 
+            if(!withdrawIsOpen) revert("Withdrawal closed. Contact controller");
             if(_amount > OrganizersEthShare) revert Insufficient_funds();
             OrganizersEthShare = OrganizersEthShare - _amount;
             (bool success, ) = payable(msg.sender).call{value: _amount}("");

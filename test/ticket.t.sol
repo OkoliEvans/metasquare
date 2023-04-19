@@ -87,11 +87,20 @@ contract CounterScript is Test {
         ITicketing(newEvent).register{value: 2 ether}();
 
 
-        vm.startPrank(eventAdmin);
+        vm.prank(eventAdmin);
         ITicketing(newEvent).setAttenders(attenders);
         
+           vm.prank(Controller);
+        ticketFactory.openWithdrawalChild(500);
+
+        vm.prank(eventAdmin);
+        ITicketing(newEvent).withdrawEthEventAdmin(0.9 ether);
+
+        //        vm.prank(Controller);
+        // ticketFactory.pauseWithdrawalChild(500);
+
+              vm.prank(eventAdmin);
         ITicketing(newEvent).withdrawEthEventAdmin(1.9 ether);
-        vm.stopPrank();
 
         vm.prank(Controller);
         ticketFactory.withdrawFromChild(500);

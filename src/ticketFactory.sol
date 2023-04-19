@@ -139,6 +139,22 @@ contract TicketFactory {
             ITicketing(childContract).withdraw();
         }
 
+        function openWithdrawalChild(uint256 _id) external onlyController {
+            EventDetail storage eventDetail = event_To_ID[_id];
+            if(eventDetail.id != _id) revert ID_Not_Found();
+            address childContract = eventDetail.eventAddress;
+            ITicketing(childContract).openWithdrawal();
+
+        }
+
+          function pauseWithdrawalChild(uint256 _id) external onlyController {
+            EventDetail storage eventDetail = event_To_ID[_id];
+            if(eventDetail.id != _id) revert ID_Not_Found();
+            address childContract = eventDetail.eventAddress;
+            ITicketing(childContract).pauseWithdrawal();
+
+        }
+
 
         function withdraw(uint256 _amount, address _to) external onlyController {
 
