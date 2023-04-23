@@ -29,7 +29,7 @@ contract CounterScript is Test {
         vm.startPrank(eventAdmin);
         (address newPoap, address newEvent) = ticketFactory.createEvent(
             300,
-            2 ether,
+            0.2 ether,
             50,
             1 minutes,
             5 minutes,
@@ -43,7 +43,7 @@ contract CounterScript is Test {
         vm.deal(user, 50 ether);
         vm.warp(1 minutes);
         vm.prank(user);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 0.2 ether}();
 
 
         ticketFactory.checkEventId(newEvent);
@@ -61,7 +61,7 @@ contract CounterScript is Test {
         vm.startPrank(eventAdmin);
             (address newPoap, address newEvent) = ticketFactory.createEvent(
             500,
-            2 ether,
+            0.2 ether,
             50,
             1 minutes,
             10 minutes,
@@ -81,10 +81,10 @@ contract CounterScript is Test {
 
         vm.warp(1 minutes);
         vm.prank(user);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 0.2 ether}();
 
         vm.prank(user2);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 0.2 ether}();
 
 
         vm.prank(eventAdmin);
@@ -94,13 +94,13 @@ contract CounterScript is Test {
         ticketFactory.openWithdrawalChild(500);
 
         vm.prank(eventAdmin);
-        ITicketing(newEvent).withdrawEthEventAdmin(0.9 ether);
+        ITicketing(newEvent).withdrawEthEventAdmin(0.01 ether);
 
         //        vm.prank(Controller);
         // ticketFactory.pauseWithdrawalChild(500);
 
               vm.prank(eventAdmin);
-        ITicketing(newEvent).withdrawEthEventAdmin(1.9 ether);
+        ITicketing(newEvent).withdrawEthEventAdmin(0.09 ether);
 
         vm.prank(Controller);
         ticketFactory.withdrawFromChild(500);

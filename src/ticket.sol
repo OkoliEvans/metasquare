@@ -29,8 +29,8 @@ contract iTicketing is ERC721, ERC721URIStorage {
         uint256  eventNftId;
         uint256  poapNftId;
         uint256  totalParticipants;
-        uint256 regStartTime;
-        uint256 regEndTime;
+        uint256 regStartDate;
+        uint256 regDeadline;
         uint256  eventFee;
         string eventUri;
     }
@@ -76,8 +76,8 @@ contract iTicketing is ERC721, ERC721URIStorage {
         uint256 _id,
         uint256 _fee,
         uint256 _no_of_participants,
-        uint256 _regStartTime,
-        uint256 _regEndTime,
+        uint256 _regStartDate,
+        uint256 _regDeadline,
         string memory _eventUri,
         string memory _name,
         string memory _symbol,
@@ -93,8 +93,8 @@ contract iTicketing is ERC721, ERC721URIStorage {
             _id,
             _fee,
             _no_of_participants,
-            _regStartTime,
-            _regEndTime,
+            _regStartDate,
+            _regDeadline,
             _eventUri
         );
     }
@@ -126,16 +126,16 @@ contract iTicketing is ERC721, ERC721URIStorage {
             uint256 _id,
             uint256 _fee,
             uint256 no_of_participants,
-            uint256 _regStartTime,
-            uint256 _regEndTime,
+            uint256 _regStartDate,
+            uint256 _regDeadline,
             string memory _eventUri
             ) internal {
 
             eventDetails.eventNftId = _id;
             eventDetails.eventFee = _fee;
             eventDetails.eventUri = _eventUri;
-            eventDetails.regStartTime = _regStartTime;
-            eventDetails.regEndTime = _regEndTime;
+            eventDetails.regStartDate = _regStartDate;
+            eventDetails.regDeadline = _regDeadline;
 
             idExists[_id] = true;
             totalExpectedParticipants = no_of_participants;
@@ -179,9 +179,9 @@ contract iTicketing is ERC721, ERC721URIStorage {
 
             if(totalExpectedParticipants == eventDetails.totalParticipants) revert Max_No_Of_Participants_Reached();
             if(hasRegistered[msg.sender] == true) revert Already_Registered();
-            if(eventDetails.regStartTime > block.timestamp) revert Registration_Not_Started();
-            if(eventDetails.regEndTime < block.timestamp) revert Registration_Ended();
-
+            if(eventDetails.regStartDate > block.timestamp) revert Registration_Not_Started();
+            if(eventDetails.regDeadline < block.timestamp) revert Registration_Ended();
+            
             if(eventDetails.eventFee == 0 && msg.value == 0) {
                 
                 hasRegistered[msg.sender] = true;
@@ -223,23 +223,23 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
 
-        function tokenURI(uint256 tokenId) public view override(ERC721URIStorage, ERC721) returns (string memory) {
-            _requireMinted(tokenId);
+        // function tokenURI(uint256 tokenId) public view override(ERC721URIStorage, ERC721) returns (string memory) {
+        //     _requireMinted(tokenId);
 
-            string memory _tokenURI = _tokenURIs[tokenId];
-            string memory base = _baseURI();
+        //     string memory _tokenURI = _tokenURIs[tokenId];
+        //     string memory base = _baseURI();
 
-            // If there is no base URI, return the token URI.
-            if (bytes(base).length == 0) {
-                return _tokenURI;
-            }
-            // If both are set, concatenate thevirtual baseURI and tokenURI (via abi.encodePacked).
-            if (bytes(_tokenURI).length > 0) {
-                return string(abi.encodePacked(base, _tokenURI));
-            }
+        //     // If there is no base URI, return the token URI.
+        //     if (bytes(base).length == 0) {
+        //         return _tokenURI;
+        //     }
+        //     // If both are set, concatenate thevirtual baseURI and tokenURI (via abi.encodePacked).
+        //     if (bytes(_tokenURI).length > 0) {
+        //         return string(abi.encodePacked(base, _tokenURI));
+        //     }
 
-            return super.tokenURI(tokenId);
-        }
+        //     return super.tokenURI(tokenId);
+        // }
 
         function _burn(uint256 tokenId) internal override(ERC721URIStorage, ERC721) {
             super._burn(tokenId);
