@@ -1,17 +1,12 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+// pragma solidity 0.8.15;
 
-import "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/Counters.sol";
 import "./IPoap.sol";
-import "./poap.sol";
+import "./IEventNft.sol";
 
 
-contract iTicketing is ERC721, ERC721URIStorage {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
-    Poap poap;
+contract iTicketing {
+    // Poap poap;
 
     uint256 public totalEthFromTicket;
     uint256 private OrganizersEthShare;
@@ -21,6 +16,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
     address public eventAdmin;
     address poapAddr;
     address factory;
+    address eventNftAddr;
     string baseUri;
     bool withdrawIsOpen;
     
@@ -84,11 +80,11 @@ contract iTicketing is ERC721, ERC721URIStorage {
         address _admin,
         address _controller,
         address _factory
-        ) ERC721(_name, _symbol) {
+        ) {
         eventAdmin = _admin;
         Controller = _controller;
         factory = _factory;
-        setBaseUri("https://ipfs.io/ipfs/");
+        // setBaseUri("https://ipfs.io/ipfs/");
         createEvent(
             _id,
             _fee,
@@ -118,9 +114,9 @@ contract iTicketing is ERC721, ERC721URIStorage {
         ////////////////////////////////////////////////////
 
 
-       function supportsInterface(bytes4 interfaceId) public view virtual override( ERC721) returns (bool) {
-        return super.supportsInterface(interfaceId);
-        }
+    //    function supportsInterface(bytes4 interfaceId) public view virtual override( ERC721) returns (bool) {
+    //     return super.supportsInterface(interfaceId);
+    //     }
 
         function createEvent(
             uint256 _id,
@@ -153,28 +149,27 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
 
-        function safeMint2(address to, uint256 _tokenId, string memory uri)
-            internal
+        // function safeMint2(address to, uint256 _tokenId, string memory uri)
+        //     internal
 
-        {
-            _safeMint(to, _tokenId);
-            _setTokenURI(_tokenId, uri);
-        }
+        // {
+        //     _safeMint(to, _tokenId);
+        //     _setTokenURI(_tokenId, uri);
+        // }
 
-        function _baseURI() internal view override returns (string memory) {
-            return baseUri;
-        }
+        // function _baseURI() internal view override returns (string memory) {
+        //     return baseUri;
+        // }
 
-        function setBaseUri(string memory _baseUri) internal {
-            baseUri = _baseUri;
-        }
+        // function setBaseUri(string memory _baseUri) internal {
+        //     baseUri = _baseUri;
+        // }
 
         
 
         function register() external payable {
-            _tokenIds.increment();
-            uint256 currentNum = _tokenIds.current();
-            uint256 eventId = eventDetails.eventNftId + currentNum;
+
+            uint256 eventId = eventDetails.eventNftId ++;
             string memory _tokenURI = eventDetails.eventUri;
 
             if(totalExpectedParticipants == eventDetails.totalParticipants) revert Max_No_Of_Participants_Reached();
@@ -187,7 +182,8 @@ contract iTicketing is ERC721, ERC721URIStorage {
                 hasRegistered[msg.sender] = true;
                 eventDetails.totalParticipants = eventDetails.totalParticipants + 1;
 
-                safeMint2(msg.sender, eventId, _tokenURI);
+                IEventNft(eventNftAddr).safeMint(msg.sender, eventId, _tokenURI);
+
                 emit Registered(msg.sender, eventId, _tokenURI);
                 
             } else if(msg.value == eventDetails.eventFee && eventDetails.eventFee > 0) {
@@ -196,8 +192,8 @@ contract iTicketing is ERC721, ERC721URIStorage {
                 eventDetails.totalParticipants = eventDetails.totalParticipants + 1;
                 totalEthFromTicket = totalEthFromTicket + msg.value;
        
-                safeMint2(msg.sender, eventId, _tokenURI);
-
+                IEventNft(eventNftAddr).safeMint(msg.sender, eventId, _tokenURI);
+            
                 emit Registered(msg.sender, eventId, _tokenURI);
                 
             } else { revert("Not ticket fee");}
@@ -209,11 +205,15 @@ contract iTicketing is ERC721, ERC721URIStorage {
             poapAddr = _poap;
         }
 
+          function setEventNftAddr( address _eventNft) external {
+            if(msg.sender != factory) revert("Unauthorized call[setPoapAddr]");
+            eventNftAddr = _eventNft;
+        }
+
+
 
         function claimAttendanceToken() external {
-            _tokenIds.increment();
-            uint256 currentNum = _tokenIds.current();
-            uint256 poapNftId = eventDetails.eventNftId + currentNum;
+            uint256 poapNftId = eventDetails.eventNftId ++;
             if(!attendedEvent[msg.sender]) revert Record_Not_Found();
             if(hasClaimed[msg.sender]) revert("Already claimed NFT");
 
@@ -241,13 +241,13 @@ contract iTicketing is ERC721, ERC721URIStorage {
         //     return super.tokenURI(tokenId);
         // }
 
-        function _burn(uint256 tokenId) internal override(ERC721URIStorage, ERC721) {
-            super._burn(tokenId);
+        // function _burn(uint256 tokenId) internal override(ERC721URIStorage, ERC721) {
+        //     super._burn(tokenId);
 
-            if (bytes(_tokenURIs[tokenId]).length != 0) {
-                delete _tokenURIs[tokenId];
-            }
-        }
+        //     if (bytes(_tokenURIs[tokenId]).length != 0) {
+        //         delete _tokenURIs[tokenId];
+        //     }
+        // }
 
         //////////////   VIEW FUNCTIONS      ///////////////
 

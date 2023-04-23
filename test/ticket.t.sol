@@ -6,14 +6,20 @@ import "../src/ticket.sol";
 import "../src/ticketFactory.sol";
 import "../src/ITicketing.sol";
 import "../src/poap.sol";
+import "../src/eventNFT.sol";
+
 
 contract CounterScript is Test {
         
         TicketFactory ticketFactory;
+        Poap poap;
+        EventNFT eventNFT;
         address Controller = 0xc6d123c51c7122d0b23e8B6ff7eC10839677684d;
         address eventAdmin = 0x49207A3567EF6bdD0bbEc88e94206f1cf53c5AfC;
     function setUp() public {
-        ticketFactory = new TicketFactory(Controller);
+        poap = new Poap(eventAdmin);
+        eventNFT = new EventNFT("Musikka", "Musika");
+        ticketFactory = new TicketFactory(Controller, address(poap), address(eventNFT));
     }
 
     function test_CreateID() public {
@@ -27,7 +33,7 @@ contract CounterScript is Test {
         test_CreateID();
 
         vm.startPrank(eventAdmin);
-        (address newPoap, address newEvent) = ticketFactory.createEvent(
+        ( address newEvent) = ticketFactory.createEvent(
             300,
             0.2 ether,
             50,
@@ -59,7 +65,7 @@ contract CounterScript is Test {
     function test_ticketContract() public {
         test_CreateID();
         vm.startPrank(eventAdmin);
-            (address newPoap, address newEvent) = ticketFactory.createEvent(
+            ( address newEvent) = ticketFactory.createEvent(
             500,
             0.2 ether,
             50,
@@ -117,7 +123,6 @@ contract CounterScript is Test {
 
 
         ITicketing(newEvent).EthBalanceOfOrganizer();
-        ITicketing(newEvent).tokenURI(501);
 
     }
 }

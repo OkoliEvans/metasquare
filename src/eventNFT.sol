@@ -6,24 +6,28 @@ import "../lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721UR
 import "../lib/openzeppelin-contracts/contracts/utils/Counters.sol";
 
 
-contract Poap is ERC721, ERC721URIStorage {
+contract EventNFT is ERC721, ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
     address Admin;
 
-    constructor(address _admin) ERC721("Meta Guard","MET5G2") {
-        Admin = _admin;
+    constructor( string memory _name, string memory _symbol) ERC721( _name, _symbol) {
+        Admin = msg.sender;
     }
 
+    //   function setTokenURI(uint256 tokenId, string memory _tokenURI) external {
+    //     require(isContract(msg.sender), " unauthorized call[setTokenURI]");
+    //     _setTokenURI(tokenId,_tokenURI);
+    // }
 
-    function safeMint(address to, uint256 _tokenId)
+
+    function safeMint(address to, uint256 _tokenId, string memory _uri)
         external
 
     {
-        // require(isContract(msg.sender), " unauthorized call[safeMint]"); 
-        string memory uri = "QmaJKdf1ET1hcCvxF2JD14gRh77Sii5nXHcC6pF6FMnwxA";
+        // require(isContract(msg.sender), " unauthorized call[safeMint]");
         _safeMint(to, _tokenId);
-        _setTokenURI(_tokenId, uri);
+        _setTokenURI(_tokenId, _uri);
     }
 
     function getContract() external view returns(address) {

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "./ticket.sol";
-import "./poap.sol";
+import "./IPoap.sol";
 import "./ITicketing.sol";
 
 contract TicketFactory {
@@ -35,6 +35,8 @@ contract TicketFactory {
     address[] registeredEvents;
 
     address public Controller;
+    address public poapAddr;
+    address public eventNFTAddr;
 
 
     modifier onlyController() {
@@ -42,8 +44,10 @@ contract TicketFactory {
         _;
     }
 
-    constructor(address admin) {
+    constructor(address admin, address _poap, address _eventNFT) {
         Controller = admin;
+        poapAddr = _poap;
+        eventNFTAddr = _eventNFT;
     }
 
     function createID(uint256 _regId, address _eventAdmin) external onlyController {
@@ -67,7 +71,7 @@ contract TicketFactory {
             string memory _eventUri,
             string memory _name,
             string memory _symbol
-            ) external returns(address poapAddr, address iticketingAddr){
+            ) external returns( address iticketingAddr){
 
             bytes32 zeroHash = keccak256(abi.encode(""));
             EventDetail storage eventDetail = event_To_ID[_id];
@@ -94,10 +98,6 @@ contract TicketFactory {
                 address(this)
             );
 
-            Poap poap = new Poap(
-                address(iticketing)
-            );
-            
             eventDetail.ID_Is_Used = true;
             registeredEvents.push(address(iticketing));
             eventDetail.eventAddress = address(iticketing);
@@ -105,10 +105,9 @@ contract TicketFactory {
             eventDetail.id = _id;
             eventAddressToID[address(iticketing)] = _id;
             
-
-            poapAddr = address(poap);
             iticketingAddr = address(iticketing);
             ITicketing(iticketingAddr).setPoapAddr(poapAddr);
+            ITicketing(iticketingAddr).setEventNftAddr(eventNFTAddr);
 
         } 
 
