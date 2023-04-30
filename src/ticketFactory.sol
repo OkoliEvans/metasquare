@@ -62,8 +62,8 @@ contract TicketFactory {
             uint256 _id,
             uint256 _fee,
             uint256 _no_of_participants,
-            uint256 _regStartTime,
-            uint256 _regEndTime,
+            uint256 _regStartDateAndTime,
+            uint256 _regDeadline,
             string memory _eventUri,
             string memory _name,
             string memory _symbol
@@ -75,7 +75,7 @@ contract TicketFactory {
             require(eventDetail.admin == msg.sender, "Not Admin");
             if(eventDetail.ID_Is_Used == true) revert ID_Already_In_Use();
             if(eventDetail.id == 0) revert ID_Not_Found();
-            if(_regStartTime <= 0 || _regEndTime <= _regStartTime) revert("Invalid reg. start or end time");
+            if(_regStartDateAndTime <= 0 || _regDeadline <= _regStartDateAndTime) revert("Invalid reg. start or end time");
             if(zeroHash == keccak256(abi.encode(_eventUri))) revert Invalid_Event_Uri();
             if(zeroHash == keccak256(abi.encode(_name))) revert Invalid_Value();
             if(zeroHash == keccak256(abi.encode(_symbol))) revert Invalid_Value();
@@ -84,8 +84,8 @@ contract TicketFactory {
                 _id,
                 _fee,
                 _no_of_participants,
-                _regStartTime,
-                _regEndTime,
+                _regStartDateAndTime,
+                _regDeadline,
                 _eventUri,
                 _name,
                 _symbol,
