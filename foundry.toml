@@ -5,9 +5,9 @@ libs = ["lib"]
 verbosity=5
 ffi=true
 [rpc_endpoints]
-mumbai = "${MUMBAI_RPC}"
+sepolia = "${SEPOLIA_RPC}"
 
 [etherscan]
-mumbai = { key = "${POLYGONSCAN_API}" }
+sepolia = { key = "${ETHERSCAN_API}" }
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
