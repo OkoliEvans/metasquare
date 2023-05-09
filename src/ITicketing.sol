@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 
 interface ITicketing {
-    function register() external payable;
+    function register(uint _amount) external payable;
 
     function openWithdrawal() external;
     

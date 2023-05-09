@@ -64,9 +64,9 @@ contract TicketFactory {
             uint256 _no_of_participants,
             uint256 _regStartDateAndTime,
             uint256 _regDeadline,
-            string memory _eventUri,
-            string memory _name,
-            string memory _symbol
+            string memory _eventUri, // URI of event NFT already uploaded on ipfs of filebase
+            string memory _name, //name of event NFT
+            string memory _symbol // symbol of event NFT
             ) external returns(address poapAddr, address iticketingAddr){
 
             bytes32 zeroHash = keccak256(abi.encode(""));

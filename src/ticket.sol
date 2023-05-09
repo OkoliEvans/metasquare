@@ -106,7 +106,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
         }
 
            modifier onlyEventAdminOrController() {
-            require(msg.sender == eventAdmin || msg.sender == Controller, "Unauthorized, not Admin");
+            require(msg.sender == eventAdmin || msg.sender == Controller, "Unauthorized, not Admin or controller");
             _;
         }
 
@@ -148,6 +148,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
             uint256 participants = _participants.length;
             for(uint256 i; i < participants; ++i){
                 if(!hasRegistered[_participants[i]]) revert("Not a registered address");
+                if(attendedEvent[_participants[i]]) revert("Cannot register an address twice");
                 attendedEvent[_participants[i]] = true;
             }
         }
@@ -171,7 +172,7 @@ contract iTicketing is ERC721, ERC721URIStorage {
 
         
 
-        function register() external payable {
+        function register(uint256 _amount) external payable {
             _tokenIds.increment();
             uint256 currentNum = _tokenIds.current();
             uint256 eventId = eventDetails.eventNftId + currentNum;

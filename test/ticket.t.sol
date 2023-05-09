@@ -43,7 +43,7 @@ contract CounterScript is Test {
         vm.deal(user, 50 ether);
         vm.warp(1 minutes);
         vm.prank(user);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 2 ether}(2 ether);
 
 
         ticketFactory.checkEventId(newEvent);
@@ -81,10 +81,10 @@ contract CounterScript is Test {
 
         vm.warp(1 minutes);
         vm.prank(user);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 2 ether}(2 ether);
 
         vm.prank(user2);
-        ITicketing(newEvent).register{value: 2 ether}();
+        ITicketing(newEvent).register{value: 2 ether}(2 ether);
 
 
         vm.prank(eventAdmin);

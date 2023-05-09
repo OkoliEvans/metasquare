@@ -40,7 +40,7 @@ contract TicketScript is Script {
         vm.stopBroadcast();
 
         vm.startBroadcast(userKey);
-        ITicketing(newEvent).register{value: 0.2 ether}();
+        ITicketing(newEvent).register{value: 0.2 ether}(0.2 ether);
         vm.stopBroadcast();
 
         vm.startBroadcast(eventAdminKey);
