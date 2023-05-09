@@ -161,7 +161,7 @@ contract TicketFactory {
             if(_to == address(0x0)) revert Invalid_Address();
 
             (bool success, ) = payable(_to).call{value: _amount}("");
-            require(success, "BNB transfer fail...");
+            require(success, "BNB money transfer fail...");
 
             emit WithdrawEthFactory(msg.sender, _amount, _to, block.timestamp);
         }
